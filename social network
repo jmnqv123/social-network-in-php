@@ -1,0 +1,147 @@
+<?php
+
+// Connect to the database
+$db = mysqli_connect('localhost', 'username', 'password', 'database_name');
+
+// Check if the form has been submitted
+if (isset($_POST['submit'])) {
+  // Get the form data
+  $username = mysqli_real_escape_string($db, $_POST['username']);
+  $email = mysqli_real_escape_string($db, $_POST['email']);
+  $password = mysqli_real_escape_string($db, $_POST['password']);
+  $password_confirm = mysqli_real_escape_string($db, $_POST['password_confirm']);
+
+  // Validate the form data
+  if (empty($username) || empty($email) || empty($password) || empty($password_confirm)) {
+    $error = 'All fields are required';
+  } elseif ($password != $password_confirm) {
+    $error = 'Passwords do not match';
+  } else {
+    // Hash the password for security
+    $password = password_hash($password, PASSWORD_DEFAULT);
+
+    // Insert the user into the database
+    $query = "INSERT INTO users (username, email, password) VALUES ('$username', '$email', '$password')";
+    mysqli_query($db, $query);
+
+    // Redirect to the login page
+    header('location: login.php');
+  }
+}
+
+?>
+
+<!-- Display the registration form -->
+<form method="post" action="register.php">
+  <label for="username">Username</label>
+  <input type="text" name="username" id="username" required>
+  <br>
+  <label for="email">Email</label>
+  <input type="email" name="email" id="email" required>
+  <br>
+  <label for="password">Password</label>
+  <input type="password" name="password" id="password" required>
+  <br>
+  <label for="password_confirm">Confirm Password</label>
+  <input type="password" name="password_confirm" id="password_confirm" required>
+  <br>
+  <input type="submit" name="submit" value="Register">
+</form>
+<?php
+
+// Connect to the database
+$db = mysqli_connect('localhost', 'username', 'password', 'database_name');
+
+// Check if the form has been submitted
+if (isset($_POST['submit'])) {
+  // Get the form data
+  $message = mysqli_real_escape_string($db, $_POST['message']);
+  $user_id = mysqli_real_escape_string($db, $_POST['user_id']);
+
+  // Insert the message into the database
+  $query = "INSERT INTO messages (message, user_id) VALUES ('$message', '$user_id')";
+  mysqli_query($db, $query);
+}
+
+?>
+
+<!-- Display the message form -->
+<form method="post" action="post.php">
+  <label for="message">Message</label>
+  <textarea name="message" id="message" required></textarea>
+  <br>
+  <input type="hidden" name="user_id" value="<?php echo $user_id; ?>">
+  <input type="submit" name="submit" value="Post">
+</form>
+<?php
+
+// Connect to the database
+$db = mysqli_connect('localhost', 'username', 'password', 'database_name');
+
+// Get the messages from the database
+$query = "SELECT * FROM messages ORDER BY created_at DESC";
+$result = mysqli_query($db, $query);
+
+while ($row = mysqli_fetch_assoc($result)) {
+  // Display the message
+  echo '<p>' . $row['message'] . ' - ' . $row['username'] . '</p>';
+}
+
+?>
+<?php
+
+// Connect to the database
+$db = mysqli_connect('localhost', 'username', 'password', 'database_name');
+
+// Check if the form has been submitted
+if (isset($_POST['submit'])) {
+  // Get the form data
+  $description = mysqli_real_escape_string($db, $_POST['description']);
+  $user_id = mysqli_real_escape_string($db, $_POST['user_id']);
+
+  // Check if an image was uploaded
+  if ($_FILES['image']['error'] == 0) {
+    // Get the image data
+    $image = file_get_contents($_FILES['image']['tmp_name']);
+    $image_type = $_FILES['image']['type'];
+
+    // Insert the image and description into the database
+    $query = "INSERT INTO images (image, image_type, description, user_id) VALUES ('$image', '$image_type', '$description', '$user_id')";
+    mysqli_query($db, $query);
+  }
+}
+
+?>
+
+<!-- Display the image upload form -->
+<form method="post" action="post.php" enctype="multipart/form-data">
+  <label for="image">Image</label>
+  <input type="file" name="image" id="image" required>
+  <br>
+  <label for="description">Description</label>
+  <textarea name="description" id="description"></textarea>
+  <br>
+  <input type="hidden" name="user_id" value="<?php echo $user_id; ?>">
+  <input type="submit" name="submit" value="Post">
+</form>
+<?php
+
+// Connect to the database
+$db = mysqli_connect('localhost', 'username', 'password', 'database_name');
+
+// Get the images from the database
+$query = "SELECT * FROM images ORDER BY created_at DESC";
+$result = mysqli_query($db, $query);
+
+while ($row = mysqli_fetch_assoc($result)) {
+  // Display the image
+  echo '<img src="data:' . $row['image_type'] . ';base64,' . base64_encode($row['image']) . '" alt="' . $row['description'] . '">';
+  echo '<p>' . $row['description'] . ' - ' . $row['username'] . '</p>';
+}
+
+?>
+
+
+
+
+
